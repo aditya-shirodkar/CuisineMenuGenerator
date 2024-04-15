@@ -1,22 +1,16 @@
-from api_keys import google_api_key
-
 from langchain.chains import LLMChain, SequentialChain
 from langchain.prompts import PromptTemplate
 from langchain_google_genai import ChatGoogleGenerativeAI
 import streamlit as st
 
-import os
 
-os.environ["GOOGLE_API_KEY"] = google_api_key
+def generate_restaurant_idea(cuisine, google_api_key):
+    llm = ChatGoogleGenerativeAI(
+        model="gemini-pro",
+        google_api_key=google_api_key,
+        temperature=0.7,
+    )
 
-llm = ChatGoogleGenerativeAI(
-    model="gemini-pro",
-    google_api_key=google_api_key,
-    temperature=0.7,
-)
-
-
-def generate_restaurant_idea(cuisine):
     template_name = "I want to open a restaurant for {cuisine} food, suggest exactly one fancy name for it."
     prompt_name = PromptTemplate(template=template_name, input_variables=["cuisine"])
     chain_name = LLMChain(
@@ -46,6 +40,7 @@ def main():
     st.set_page_config(page_title="Restaurant idea generator", page_icon="🍴")
     st.title("Restaurant idea generator")
 
+    google_api_key = st.sidebar.text_input("Paste Google generative AI API key")
     cuisine = st.sidebar.selectbox(
         "Pick a cuisine",
         (
@@ -60,8 +55,8 @@ def main():
         ),
     )
 
-    if cuisine:
-        restaurant_name, menu_items = generate_restaurant_idea(cuisine)
+    if cuisine and google_api_key:
+        restaurant_name, menu_items = generate_restaurant_idea(cuisine, google_api_key)
         st.header(restaurant_name.strip())
         menu_items_list = menu_items.strip().split(",")
         st.write("**Menu Items**")
